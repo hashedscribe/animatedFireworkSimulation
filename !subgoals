@@ -1,0 +1,43 @@
+subgoals
+
+INITIAL FIREWORK
+0.0 - Outline requirements for object
+0.1 - Build an object that draws a dot on the screen
+0.2 - Animate moving upward and stopping at a predetermined point
+
+EXPLOSION
+0.3 - Create object for particles from explosion
+0.4 - fill an array with "particles" and draw on screen
+0.5 - allow the firework object to take in array of particle objects
+0.6 - shoot out array of particles on x axis
+0.7 - stop the shot out particles at a certain point
+0.8 - add particles that shoot out vertically
+0.9 - made them explode into an even circle
+0.10 - made the particles explode into an area confined by circle
+
+FADING
+0.11 - give particles gravity in fade function
+0.12 - fade the particles by changing the alpha channel
+0.13 - delete the initial firework point when it reaches the peak
+0.14 - pick random particles to "glitter" by inverting the alpha channel until it fades
+
+TRAIL
+0.15 - set up trail object constructor and draw func
+0.16 - make the initial particle a generator and draw a particle
+0.17 - give particles random x y positions
+
+CLEAN UP
+0.18 - testing changing colours
+0.19 - make array of colours
+0.20 - make an array of fireworks to fire
+0.21 - randomize height and correlate it to the size
+0.22 - randomize the time that each firework fires
+
+
+
+EXTRA (didnt get to do any of them)
+
+Methods/properties for firework:
+  - make the firework particles follow a set of general lines
+  - make the fireworks glow with a grid
+  - add smoke
