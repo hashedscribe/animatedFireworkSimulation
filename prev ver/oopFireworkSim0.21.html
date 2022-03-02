@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+
+  <script>
+    //0.21 - randomize height and correlate it to the size
+
+    //declaring variables:
+      //can and ctx are needed to load and draw on the canvas
+      //size, colour, and v (velocity) will be randomized later
+      //array fireworks is so that there can be more than one fired at a time
+      //array of colours are preselected for a dark background
+      //maxh is the highest a firework can reach
+    let can, cxt, size, colour, v, maxh;
+    let fireworks = [];
+    let colours = [
+      "rgba(241, 194, 74, 1)", //yellow
+      "rgba(255, 45, 41, 1)", //bright red
+      "rgba(33, 200, 197, 1)", //lighter teal
+      "rgba(255, 255, 255, 1)" //white
+    ];
+
+    //function to return an x or y velocity
+      //when the firework explodes, to make the general shape a circle, there is a set radius (hyp) and angle
+      //returns the cos(angle)*radius to find the x velocity
+      //sin(angle)*radius to find the y velocity
+      //the a indicates if it returns x or y
+    function circVelocity(a, angle, length){
+      if(a == 0){
+        return length * Math.cos(angle);
+      }else{
+        return length * Math.sin(angle);
+      }
+    }
+
+    //particles that the firework generates upon explosion
+    class FireworkParticle{
+      constructor(x, y, size, maxy, colour){
+        this.x = x;
+        this.y = y;
+        this.r = size*10;
+        this.maxy = maxy;
+        this.colour = colour;
+        this.substr = this.colour.substring(0, this.colour.length - 2); //used for the fade
+        //takes the substring of "rgba(r, g, b, a)", cuts off the "a)"
+        //ie: "rgba(255, 255, 255, 1)" -> "rgba(255, 255, 255, "
+
+        this.angle = Math.random()*360; //generates a random angle
+        this.vx = circVelocity(0, this.angle, Math.random()*this.r);
+        this.vy = circVelocity(1, this.angle, Math.random()*this.r); //y velocity for explosion
+
+        this.vfy = 0.5; //y velocity for fade method
+        this.op = 1;
+        this.cfade = 0; //counter for fade
+      }
+      draw(){
+       //if the firework flew, draw the explosion particles
+        cxt.fillStyle = this.colour;
+        cxt.beginPath();
+        cxt.arc(this.x, this.y, 1, 0, Math.PI*2);
+        cxt.fill();
+      }
+    }
+    class Firework{
+      constructor(x, y, size, maxy, rgba, density, v){ //input: x, y, size of firework, maximum y value,
+        this.x = x;                                    //colour, density of particles, velocity
+        this.y = y;
+        this.maxy = maxy;
+        this.size = size;
+        this.cexplode = 0; //counter for explosion
+        this.colour = rgba;
+        this.density = density;
+        this.v = v; //velocity of launch
+
+        this.particles = []; //empty array for particles to be pushed into
+        this.trail = []; //empty array for the trail of particles that follow the firework when its launched to be pushed into
+      }
+
+      //generates explode particles and particles for the trail and pushes them into the respectice arrays
+      setup(){
+        for(let i = 0; i < this.density; i++){
+          this.particles.push(new FireworkParticle(this.x, this.y, this.size, this.maxy, this.colour));
+        }
+        for(let i = 0; i < 10; i++){
+          this.trail.push(new FireworkTrail(this.x, this.y, this.colour, this.v));
+        }
+      }
+
+      //if the firework is at its max y-position, draw the explosion particles. if it's not, draw the initial firework with a trail
+      draw(){
+        if(this.y === this.maxy){ //if the particle reaches the maximum, draw the particles
+          for (let i = 0; i < this.particles.length; i++){
+              this.particles[i].draw();
+          }
+        }else{ //otherwise, draw the initial dot
+          cxt.fillStyle = '#8b7864';
+          cxt.beginPath();
+          cxt.arc(this.x, this.y, this.size, 0, Math.PI*2);
+          cxt.fill();
+
+          for(let i = 0; i < this.trail.length; i++){
+            this.trail[i].draw();
+          }
+        }
+      }
+
+      //change the y position (make it go higher by subtracting the velocity from the position) until the firework reaches its maxy
+      fly(){
+        if(this.y > this.maxy){ //tests if the point has reached the "max" height
+          this.y = this.y - this.v; //if it is greater than the max, subtract x (changing x changes the speed)
+          for(let i = 0; i < this.trail.length; i++){
+            this.trail[i].move();
+          }
+        }
+      }
+
+      //if the initial firework reaches the max, draw and change the xy positions of all the particles
+      explode(){
+        if(this.y === this.maxy){
+          if(this.cexplode === 0){ //the first time that this if statement is true, for all the particles, update their y position to match where the firework is
+            for (var i = 0; i < this.particles.length; i++) {
+              this.particles[i].y = this.y;
+            }
+          }
+          if(this.cexplode < 20){ //for 20 frames, increase the xy positions of the particles by their respective velocities
+            for(let i = 0; i < this.particles.length; i++){
+                this.particles[i].x = this.particles[i].x + this.particles[i].vx;
+                this.particles[i].y = this.particles[i].y + this.particles[i].vy;
+            }
+            this.cexplode++; //add 1 to cexplode to prevent infinite loop
+          }
+        }
+      }
+
+      //slowly turn the transparency of each particle to 0
+      fade(){
+        for(let i = 0; i < this.particles.length; i++){
+          this.particles[i].y = this.particles[i].y + this.particles[i].vfy; //make the particles fall (by adding velocity to position)
+          if(this.cexplode == 20){ //when the explosion stops
+            //pick random points to flicker by changing transparency to 0 and then making it brighter
+            if((i%5 == 0) && (this.particles[i].op <= 0.7) && (this.particles[i].cfade < 3)){
+              this.particles[i].colour = this.particles[i].substr + 0 + ")";
+              this.particles[i].op = 0.85;
+              this.particles[i].cfade++; //increase the fade counter so that it doesn't flicker forever
+            }else{
+              this.particles[i].colour = this.particles[i].substr + this.particles[i].op + ")"; //draws particles with opacity
+              this.particles[i].op = this.particles[i].op - 0.01; //lower opacity by 0.01
+            }
+          }
+        }
+      }
+    }
+    class FireworkTrail{ //particles that trial off of the firework as it flies
+      constructor(x, y, colour, velocity){
+        this.x = x;
+        this.y = y + Math.random()*50; //trail is under the initial firework and can vary
+        this.colour = colour;
+        this.velocity = velocity;
+      }
+      draw(){
+        cxt.fillStyle = "rgb(100, 100, 100)"; //draw in grey
+        cxt.beginPath();
+        cxt.arc(this.x, this.y, 1, 0, Math.PI*2);
+        cxt.fill();
+      }
+      move(){
+        this.x = this.x + Math.random()*0.5; //change its x position for a little bit more movement
+        this.x = this.x - Math.random()*0.5; //do it twice, once negative and once positive so that they don't clump to one side
+        this.y = this.y - this.velocity;
+      }
+    }
+
+    //setup the fireworks that will be fired
+    function setup(){
+      can = document.getElementById("can"); //define the can and cxt to be able to draw on the canvas
+      cxt = can.getContext('2d');
+
+      for(let i = 0; i < 20; i++){ //make x number of fireworks
+        //set values for all the variables
+          //colour: pick a random one from the list (floor it because js gets random decimals)
+          //size: generate a random size for the firework ball
+          //xpos: pick a random position on the x axis for the firework to start
+          //v (velocity): pick a random velocity (7-10)
+          //maxh: takes into consideration the size (the bigger, the higher it flies) and multiplies by velocity
+        colour = colours[Math.floor(Math.random()*colours.length)];
+        size = Math.random()*0.5 + 0.5;
+        xpos = Math.random()*(can.width);
+        v = Math.floor(Math.random()*3)+7;
+        maxh = can.height-(v*Math.floor(size*15))*10;
+
+        //make new firework and run the setup for each (making particles and trails)
+        fireworks.push(new Firework(xpos, can.height, size, maxh, colour, 200*size, v));
+        fireworks[i].setup();
+      }
+
+      //start the animation
+      window.requestAnimationFrame(draw);
+    }
+    function draw(){
+      cxt.clearRect(0, 0, can.width, can.height);
+      //for every firework in the array, run all their methods
+      for(let i = 0; i < fireworks.length; i++){
+        fireworks[i].draw();
+        fireworks[i].fly();
+        fireworks[i].explode();
+        fireworks[i].fade();
+      }
+      window.requestAnimationFrame(draw);
+    }
+
+  </script>
+
+</head>
+
+<body onload="setup()" style="background-color:#1b1a18;">
+  <canvas width="1000px" height="1500px" style="border: solid" id="can">
+  </canvas>
+</body>
+</html>

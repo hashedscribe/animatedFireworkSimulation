@@ -1,0 +1,51 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+
+  <script>
+    //0.1 - Build an object that draws a dot on the screen
+
+    let firework, can, cxt;
+
+    class FireworkToFire{
+      constructor(x, y){ //input: x coord, y coord
+        this.x = x;
+        this.y = y;
+        this.size = 2;
+      }
+      draw(){ //draw the initial dot
+        cxt.fillStyle = '#8b7864';
+        cxt.beginPath();
+        cxt.arc(this.x, this.y, this.size, 0, Math.PI*2);
+        cxt.fill();
+      }
+    }
+
+
+    function setup(){
+      can = document.getElementById("can");
+      cxt = can.getContext('2d');
+
+      firework = new FireworkToFire(250, 450);
+      draw();
+    }
+
+    function draw(){
+      firework.draw();
+    }
+
+  </script>
+
+</head>
+
+<body onload="setup()" style="background-color:#1b1a18;">
+  <canvas width="500px" height="500px" style="border: solid" id="can">
+  </canvas>
+</body>
+</html>

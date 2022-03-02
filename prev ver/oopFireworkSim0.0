@@ -1,0 +1,32 @@
+class 1: FireworkToFire
+properties:
+    appearance (a):
+        - x pos
+        - y pos
+        - color
+        - size
+
+    calculations (c):
+        - quality
+        - success chance
+        - satisfaction
+
+    misc:
+        - name
+
+methods:
+    draw()
+        - draws the firework (a)
+
+    light()
+        - light firework from bottom (a)
+        - chance calculation (c)
+
+    fly()
+        - change height (a)
+        - trail (a)
+        - calculate how high (c)
+
+    explode()
+        - explode w game of life model? (a & c)
+        - trail (a)

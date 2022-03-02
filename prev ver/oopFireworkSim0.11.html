@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+
+  <script>
+    //0.9 - made them explode into an even circle
+
+    let firework, can, cxt, particles = [];
+
+    function circVelocity(a, angle, length){ //calculate the x and y component of a velocity using trig
+      if(a == 0){
+        return length * Math.cos(angle);
+      }else{
+        return length * Math.sin(angle);
+      }
+    }
+
+    class FireworkParticle{
+      constructor(a, x, y, size, maxy){ //a = place in the array
+        this.a = a;
+        this.x = x;
+        this.y = y;
+        this.r = size*10;
+        this.maxy = maxy;
+
+        this.angle = Math.random()*360; //generates a random angle
+        this.vx = circVelocity(0, this.angle, Math.random()*this.r);
+        this.vy = circVelocity(1, this.angle, Math.random()*this.r); //y velocity for explosion
+
+        this.vfy = 0.5; //y velocity for fade method
+      }
+      draw(){
+        if(firework.flew === true){
+          cxt.fillStyle = '#ffffff';
+          cxt.beginPath();
+          cxt.arc(this.x, this.y, 1, 0, Math.PI*2);
+          cxt.fill();
+        }
+      }
+    }
+    class FireworkToFire{
+      constructor(x, y, maxy){ //input: x coord, y coord, max height (the smaller, the higher)
+        this.x = x;
+        this.y = y;
+        this.maxy = maxy;
+        this.size = 1;
+        this.cexplode = 0;
+
+        this.particles = []; //empty array for things to be pushed into, will be useful later
+
+        this.flew = false;
+      }
+      setup(){
+        for(let i = 0; i < 150; i++){
+          this.particles.push(new FireworkParticle(i, firework.x, firework.y, firework.size, firework.maxy));
+        }
+      }
+      draw(){ //draw the initial dot
+        cxt.fillStyle = '#8b7864';
+        cxt.beginPath();
+        cxt.arc(this.x, this.y, this.size, 0, Math.PI*2);
+        cxt.fill();
+        if(this.y === this.maxy){
+          for (let i = 0; i < this.particles.length; i++){
+              this.particles[i].draw();
+          }
+        }
+      }
+      fly(){
+        if(this.y > this.maxy){ //tests if the point has reached the "max" height. since the firework
+          this.y = this.y - 10; //if it is greater than the max, subtract x (changing x changes the speed)
+          this.flew = true;
+        }
+      }
+      explode(){
+        if(this.y === this.maxy){
+          if(this.cexplode === 0){ //stops explosions at a certain point
+            for (var i = 0; i < this.particles.length; i++) {
+              this.particles[i].y = this.y; //updates the particles y positions once
+            }
+          }
+          if(this.cexplode < 15){
+            for(let i = 0; i < this.particles.length; i++){
+                this.particles[i].x = this.particles[i].x + this.particles[i].vx;
+                this.particles[i].y = this.particles[i].y + this.particles[i].vy;
+            }
+            this.cexplode++; //add 1 to cexplode to prevent infinite loop
+          }
+        }
+      }
+      fade(){
+        for(let i = 0; i < this.particles.length; i++){
+          this.particles[i].y = this.particles[i].y + this.particles[i].vfy;
+        }
+      }
+    }
+
+
+    function setup(){
+      can = document.getElementById("can");
+      cxt = can.getContext('2d');
+
+      firework = new FireworkToFire(250, can.height, 300);
+      firework.setup();
+
+      window.requestAnimationFrame(draw);
+    }
+
+    function draw(){
+      cxt.clearRect(0, 0, can.width, can.height);
+      firework.draw();
+      firework.fly();
+      firework.explode();
+      firework.fade();
+      window.requestAnimationFrame(draw);
+    }
+
+  </script>
+
+</head>
+
+<body onload="setup()" style="background-color:#1b1a18;">
+  <canvas width="500px" height="1000px" style="border: solid" id="can">
+  </canvas>
+</body>
+</html>
